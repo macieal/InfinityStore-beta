@@ -7,6 +7,12 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static("public")); // onde fica seu index.html
 
+// Rota RÁPIDA de Health Check para o Render
+app.get("/health", (req, res) => {
+    // Apenas diz "OK" com status 200 (Sucesso)
+    res.status(200).send("OK");
+});
+
 // 🔧 coloque aqui suas chaves do Supabase
 const supabase = createClient(
   "https://SEU_PROJETO.supabase.co",

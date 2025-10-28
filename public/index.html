@@ -35,6 +35,7 @@ background:#1a1a1a; border:2px solid #333; padding:20px; border-radius:10px; z-i
   <button id="fecharBtn">Fechar</button>
 </div>
 <script>
+app.use(express.static("public"));
 const btnPublicar = document.getElementById('publicarBtn');
 const janela = document.getElementById('janelaPublicar');
 const fechar = document.getElementById('fecharBtn');
@@ -64,10 +65,7 @@ enviar.onclick = async () => {
   alert(data.message);
   if(res.ok) janela.style.display = 'none';
 };
-</script>
-<div id="listaApps" style="margin-top:40px; display:flex; flex-wrap:wrap; gap:16px;"></div>
 
-<script>
 async function carregarApps() {
   const res = await fetch('/api/apps');
   const apps = await res.json();
@@ -123,5 +121,6 @@ enviar.onclick = async () => {
   }
 };
 </script>
+<div id="listaApps" style="margin-top:40px; display:flex; flex-wrap:wrap; gap:16px;"></div>
     </body>
 </html>
