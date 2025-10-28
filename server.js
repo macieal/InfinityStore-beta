@@ -1,65 +1,46 @@
 import express from "express";
 import cors from "cors";
-import fs from "fs";
+import { createClient } from "@supabase/supabase-js";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static("public"));
+app.use(express.static("public")); // onde fica seu index.html
 
-const DB_FILE = "./apps.json";
-
-// Função auxiliar: lê os apps salvos
-function lerApps() {
-  try {
-    if (!fs.existsSync(DB_FILE)) return [];
-    const data = fs.readFileSync(DB_FILE, "utf8");
-    return JSON.parse(data);
-  } catch (err) {
-    console.error("Erro ao ler apps.json:", err);
-    return [];
-  }
-}
-
-// Função auxiliar: salva os apps no arquivo
-function salvarApps(lista) {
-  try {
-    fs.writeFileSync(DB_FILE, JSON.stringify(lista, null, 2));
-  } catch (err) {
-    console.error("Erro ao salvar apps.json:", err);
-  }
-}
-
-// rota para listar apps
-app.get("/api/apps", (req, res) => {
-  const apps = lerApps();
-  res.json(apps);
+// Rota RÁPIDA de Health Check para o Render
+app.get("/health", (req, res) => {
+    // Apenas diz "OK" com status 200 (Sucesso)
+    res.status(200).send("OK");
 });
 
-// rota para publicar novo app
-app.post("/api/publicar", (req, res) => {
+// 🔧 coloque aqui suas chaves do Supabase
+const supabase = createClient(
+  "https://SEU_PROJETO.supabase.co",
+  "SEU_SUPABASE_ANON_KEY"
+);
+
+// rota para receber publicações
+app.post("/api/publicar", async (req, res) => {
   const { nome, descricao, link, icone } = req.body;
+
   if (!nome || !descricao || !link) {
-    return res.status(400).json({ message: "Preencha todos os campos obrigatórios." });
+    return res.status(400).json({ message: "Campos obrigatórios faltando!" });
   }
 
-  const apps = lerApps();
-  const novo = {
-    id: Date.now(),
-    nome,
-    descricao,
-    link,
-    icone: icone || "",
-    data: new Date().toISOString(),
-  };
-  apps.unshift(novo);
-  salvarApps(apps);
+  const { error } = await supabase.from("apps").insert([
+    { nome, descricao, link, icone }
+  ]);
 
+  if (error) return res.status(500).json({ message: "Erro ao salvar: " + error.message });
   res.json({ message: "App publicado com sucesso!" });
 });
 
-// health check
-app.get("/health", (req, res) => res.status(200).send("OK"));
+// rota para listar apps
+app.get("/api/apps", async (req, res) => {
+  const { data, error } = await supabase.from("apps").select("*").order("id", { ascending: false });
+  if (error) return res.status(500).json({ message: error.message });
+  res.json(data);
+});
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log("InfinityStore rodando na porta " + port));

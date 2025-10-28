@@ -1,79 +1,39 @@
 <!DOCTYPE html>
-
 <html lang="pt">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Infinity Studios - Store</title>
-
     <meta charset="UTF-8">
-
     <meta name="description" content="InfinityStudios">
-
     <meta name="keywords" content="Loja de Aplicativos & Jogos!">
-
     <link rel="stylesheet" href="style.css">
-
     <link rel="shortcut icon" href="./MarGamesStoresemfundo.png" type="image/x-icon">
-
 </head>
-
 <body>
-
     <div class="display">
-
         <div class="Infinity">
-
             <p><a href="https://infinitystudios.vercel.app"><img src="./infinity-studios-removebg-preview.png" height="70" width="70" id="MarGames"></a></p>
-
             <p><h1 id="infinitytitle">Infinity Studios</h1></p>
-
         </div>
-
     </div>
-
     <hr>
-
     <div class="Menu">
-
         <button id="slc">Store</button>
-
-        <a href="./Aplicativos Oficiais/"><button>AppsOficiais</button></a>
-
+        <a href="./Aplicativos Oficiais/index.html"><button>AppsOficiais</button></a>
     </div>
-
-    <center>
-
-      <button id="publicarBtn">📤</button>
-
-    </center>
-
+<button id="publicarBtn">📤</button>
 <div id="janelaPublicar" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%);
-
 background:#1a1a1a; border:2px solid #333; padding:20px; border-radius:10px; z-index:999;">
-
   <h2>Publicar App ou Jogo</h2>
-
   <input id="nome" placeholder="Nome do app/jogo" style="width:100%; margin-bottom:8px;"><br>
-
   <textarea id="descricao" placeholder="Descrição" style="width:100%; height:60px; margin-bottom:8px;"></textarea><br>
-
   <input id="link" placeholder="Link do jogo (ex: https://...)" style="width:100%; margin-bottom:8px;"><br>
-
   <input id="icone" placeholder="Link do ícone (opcional)" style="width:100%; margin-bottom:8px;"><br>
-
   <button id="enviarBtn">Enviar</button>
-
   <button id="fecharBtn">Fechar</button>
-
 </div>
-
 <!-- Substitua todos os <script> atuais por este -->
 <script>
 document.addEventListener('DOMContentLoaded', () => {
@@ -179,8 +139,6 @@ document.addEventListener('DOMContentLoaded', () => {
   carregarApps();
 });
 </script>
-
-
+<div id="listaApps" style="margin-top:40px; display:flex; flex-wrap:wrap; gap:16px;"></div>
     </body>
-
 </html>
