@@ -15,6 +15,9 @@ body{
     color: white;
     animation: forwards 2s entrada;
 }
+#publicarBtn{
+    margin-top: 500px;
+}
 button{
 	font-size: 20px;
 	background-color: black;
