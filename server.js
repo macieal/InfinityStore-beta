@@ -1,54 +1,65 @@
-const express = require('express');
-const path = require('path');
-const fs = require('fs');
+import express from "express";
+import cors from "cors";
+import fs from "fs";
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-// JSON parsing
+app.use(cors());
 app.use(express.json());
+app.use(express.static("public"));
 
-// Serve static assets (pasta assets)
-app.use('/assets', express.static(path.join(__dirname, 'assets')));
-app.use(express.static(path.join(__dirname, 'assets'))); // serve also at root paths
+const DB_FILE = "./apps.json";
 
-// ensure posts.json exists
-const postsPath = path.join(__dirname, 'posts.json');
-if (!fs.existsSync(postsPath)) fs.writeFileSync(postsPath, '[]', 'utf8');
+// Função auxiliar: lê os apps salvos
+function lerApps() {
+  try {
+    if (!fs.existsSync(DB_FILE)) return [];
+    const data = fs.readFileSync(DB_FILE, "utf8");
+    return JSON.parse(data);
+  } catch (err) {
+    console.error("Erro ao ler apps.json:", err);
+    return [];
+  }
+}
 
-// API: listar posts
-app.get('/api/posts', (req, res) => {
-  const posts = JSON.parse(fs.readFileSync(postsPath, 'utf8') || '[]');
-  res.json(posts);
+// Função auxiliar: salva os apps no arquivo
+function salvarApps(lista) {
+  try {
+    fs.writeFileSync(DB_FILE, JSON.stringify(lista, null, 2));
+  } catch (err) {
+    console.error("Erro ao salvar apps.json:", err);
+  }
+}
+
+// rota para listar apps
+app.get("/api/apps", (req, res) => {
+  const apps = lerApps();
+  res.json(apps);
 });
 
-// API: criar post
-app.post('/api/posts', (req, res) => {
-  const { text, nick, topic } = req.body;
-  if (!text && (!nick || !topic)) return res.status(400).json({ error: 'Dados incompletos' });
+// rota para publicar novo app
+app.post("/api/publicar", (req, res) => {
+  const { nome, descricao, link, icone } = req.body;
+  if (!nome || !descricao || !link) {
+    return res.status(400).json({ message: "Preencha todos os campos obrigatórios." });
+  }
 
-  const posts = JSON.parse(fs.readFileSync(postsPath, 'utf8') || '[]');
-  posts.unshift({
-    nick: nick || 'anon',
-    topic: topic || 'geral',
-    text: text || '',
-    comments: [],
-    created: Date.now()
-  });
-  fs.writeFileSync(postsPath, JSON.stringify(posts, null, 2), 'utf8');
-  res.json({ ok: true });
+  const apps = lerApps();
+  const novo = {
+    id: Date.now(),
+    nome,
+    descricao,
+    link,
+    icone: icone || "",
+    data: new Date().toISOString(),
+  };
+  apps.unshift(novo);
+  salvarApps(apps);
+
+  res.json({ message: "App publicado com sucesso!" });
 });
 
-// Serve index.html na raiz (rota /)
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'assets', 'index.html'));
-});
+// health check
+app.get("/health", (req, res) => res.status(200).send("OK"));
 
-// Catch-all (para casos de SPA)
-app.get('*', (req, res) => {
-  // se for API, deixa seguir
-  if (req.path.startsWith('/api')) return res.status(404).json({ error: 'Not found' });
-  res.sendFile(path.join(__dirname, 'assets', 'index.html'));
-});
-
-app.listen(PORT, () => console.log('Server rodando na porta', PORT));
+const port = process.env.PORT || 3000;
+app.listen(port, () => console.log("InfinityStore rodando na porta " + port));
