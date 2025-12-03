@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infinity Studios - TempStore</title>
+    <meta charset="UTF-8">
+    <meta name="description" content="InfinityStudios">
+    <meta name="keywords" content="Loja de Aplicativos & Jogos!">
+    <link rel="stylesheet" href="style.css">
+    <link rel="shortcut icon" href="./MarGamesStoresemfundo.png" type="image/x-icon">
+</head>
+<body>
+    <div class="display">
+        <div class="Infinity">
+            <p><a href="https://infinitystudios.vercel.app"><img src="./infinity-studios-removebg-preview.png" height="70" width="70" id="MarGames"></a></p>
+            <p><h1 id="infinitytitle">Infinity Studios</h1></p>
+        </div>
+    </div>
+    <hr>
+    <div class="Menu">
+        <button id="slc">Store</button>
+        <a href="./Aplicativos Oficiais/index.html"><button>AppsOficiais</button></a>
+        <button id="publicarBtn">📤</button>
+    </div>
+
+<div id="janelaPublicar" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%);
+background:#1a1a1a; border:2px solid #333; padding:20px; border-radius:10px; z-index:999;">
+  <h2>Publicar App ou Jogo</h2>
+  <input id="nome" placeholder="Nome do app/jogo" style="width:100%; margin-bottom:8px;"><br>
+  <textarea id="descricao" placeholder="Descrição" style="width:100%; height:60px; margin-bottom:8px;"></textarea><br>
+  <input id="link" placeholder="Link do jogo (ex: https://...)" style="width:100%; margin-bottom:8px;"><br>
+  <input id="icone" placeholder="Link do ícone (opcional)" style="width:100%; margin-bottom:8px;"><br>
+  <button id="enviarBtn">Enviar</button>
+  <button id="fecharBtn">Fechar</button>
+</div>
+<!-- Substitua todos os <script> atuais por este -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Seletores
+  const btnPublicar = document.getElementById('publicarBtn');
+  const janela = document.getElementById('janelaPublicar');
+  const fechar = document.getElementById('fecharBtn');
+  const enviar = document.getElementById('enviarBtn');
+  const lista = document.getElementById('listaApps');
+
+  // Segurança: garante que os elementos existam
+  if (!btnPublicar || !janela || !fechar || !enviar || !lista) {
+    console.error('Elemento(s) esperado(s) não encontrado(s). Verifique os IDs: publicarBtn, janelaPublicar, fecharBtn, enviarBtn, listaApps');
+    return;
+  }
+
+  // Mostrar/ocultar janela
+  btnPublicar.addEventListener('click', () => janela.style.display = 'block');
+  fechar.addEventListener('click', () => janela.style.display = 'none');
+
+  // Função para escapar HTML (evita injeção)
+  function escapeHtml(text){
+    if (!text) return '';
+    return String(text)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#039;');
+  }
+
+  // Carrega apps do backend e renderiza
+  async function carregarApps() {
+    try {
+      const res = await fetch('/api/apps');
+      if (!res.ok) throw new Error('Erro ao buscar apps: ' + res.status);
+      const apps = await res.json();
+
+      lista.innerHTML = ''; // limpa
+
+      apps.forEach(app => {
+        const card = document.createElement('div');
+        card.style.cssText = `
+          background:#1a1a1a; border:2px solid #333; padding:15px; border-radius:12px;
+          width:200px; text-align:center; box-shadow:0 4px 10px #0003; margin:6px;
+        `;
+
+        const iconeHtml = app.icone ?
+          `<img src="${escapeHtml(app.icone)}" alt="${escapeHtml(app.nome)}" style="width:64px;height:64px;border-radius:12px;margin-bottom:10px;">`
+          : `<div style="width:64px;height:64px;background:#333;border-radius:12px;margin:0 auto 10px;height:64px;"></div>`;
+
+        card.innerHTML = `
+          ${iconeHtml}
+          <h3 style="margin:0;font-size:18px;">${escapeHtml(app.nome)}</h3>
+          <p style="font-size:13px;color:#aaa;">${escapeHtml(app.descricao)}</p>
+          <a href="${escapeHtml(app.link)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-top:6px;color:#6ee7b7;text-decoration:none;">Abrir</a>
+        `;
+        lista.appendChild(card);
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  // Envio da publicação
+  enviar.addEventListener('click', async () => {
+    const nome = document.getElementById('nome').value.trim();
+    const descricao = document.getElementById('descricao').value.trim();
+    const link = document.getElementById('link').value.trim();
+    const icone = document.getElementById('icone').value.trim();
+
+    if (!nome || !descricao || !link) {
+      alert('Preencha todos os campos obrigatórios!');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/publicar', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ nome, descricao, link, icone })
+      });
+
+      const data = await res.json();
+      alert(data.message || (res.ok ? 'Publicado!' : 'Erro ao publicar'));
+
+      if (res.ok) {
+        janela.style.display = 'none';
+        // limpa campos
+        document.getElementById('nome').value = '';
+        document.getElementById('descricao').value = '';
+        document.getElementById('link').value = '';
+        document.getElementById('icone').value = '';
+        carregarApps();
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao enviar publicação.');
+    }
+  });
+
+  // Carrega ao iniciar
+  carregarApps();
+});
+</script>
+<div id="listaApps" style="margin-top:40px; display:flex; flex-wrap:wrap; gap:16px;"></div>
+    </body>
+</html>
